@@ -16,7 +16,7 @@ static const string hello_path = "/hello";
 
 int hivefs_fuse::getattr(const char *path, struct stat *statbuf, struct fuse_file_info *)
 {
-   int status = hivefs_dht_getattr(std::string(path), *statbuf);
+   int status = dht_op.hivefs_dht_getattr(std::string(path), *statbuf);
    if (status == -1)
       return -ENOENT;
 
@@ -31,7 +31,7 @@ int hivefs_fuse::readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 	filler(buf, "..", NULL, 0, FUSE_FILL_DIR_PLUS);
 
    	std::vector<std::string> entry_list;
-   	entry_list = hivefs_dht_readdir(std::string(path));
+   	entry_list = dht_op.hivefs_dht_readdir(std::string(path));
 
    	if (entry_list.at(0) == "-1")
       return -ENOENT;
@@ -61,7 +61,7 @@ int hivefs_fuse::open(const char *path, struct fuse_file_info *fi)
 int hivefs_fuse::read(const char *path, char *buf, size_t size, off_t offset,
 		              struct fuse_file_info *)
 {
-	std::string status = hivefs_dht_read(std::string(path));
+	std::string status = dht_op.hivefs_dht_read(std::string(path));
 
    	if (status == "-1")
     	return -ENOENT;
@@ -73,7 +73,7 @@ int hivefs_fuse::read(const char *path, char *buf, size_t size, off_t offset,
 }
 
 int hivefs_fuse::create(const char* path, mode_t mode, struct fuse_file_info * ffi) {
-   int status = hivefs_dht_create(std::string(path));
+   int status = dht_op.hivefs_dht_create(std::string(path));
    if (status == -1)
       return -ENOENT;
 
@@ -82,7 +82,7 @@ int hivefs_fuse::create(const char* path, mode_t mode, struct fuse_file_info * f
 
 int hivefs_fuse::rename(const char *path, const char *newpath, unsigned int flags) {
    //Get file's UUID, update file name in value to newpath input
-   int status = hivefs_dht_rename(std::string(path), std::string(newpath));
+   int status = dht_op.hivefs_dht_rename(std::string(path), std::string(newpath));
 
    if (status == -1)
       return -ENOENT;
@@ -92,7 +92,7 @@ int hivefs_fuse::rename(const char *path, const char *newpath, unsigned int flag
 }
 
 int hivefs_fuse::rmdir(const char *path){
-   int status = hivefs_dht_rmdir(std::string(path));
+   int status = dht_op.hivefs_dht_rmdir(std::string(path));
 
    if (status == -1)
       return -ENOENT;
@@ -101,7 +101,7 @@ int hivefs_fuse::rmdir(const char *path){
 }
 
 int hivefs_fuse::unlink(const char *path){  //Remove file function
-   int status = hivefs_dht_unlink(std::string(path));
+   int status = dht_op.hivefs_dht_unlink(std::string(path));
    if (status == -1)
       return -ENOENT;
 
@@ -114,14 +114,14 @@ int hivefs_fuse::mkdir(const char *path, mode_t mode){
    fpath = ; //Full path name of folder at path, will get directory name from DHT file-tag and append
    mkdir(fpath, mode);*/
 
-   if (hivefs_dht_mkdir(std::string(path)) == -1)
+   if (dht_op.hivefs_dht_mkdir(std::string(path)) == -1)
       return -EIO;
 
    return 0;
 }
 
 int hivefs_fuse::write(const char *path, const char *buf, size_t size, off_t offset, struct fuse_file_info *fi) {
-   int status = hivefs_dht_write(std::string(path), std::string(buf));
+   int status = dht_op.hivefs_dht_write(std::string(path), std::string(buf));
 
    if (status == -1)
       return -ENOENT;

@@ -6,7 +6,7 @@
 #include "Fuse.h"
 
 #include "Fuse-impl.h"
-#include "hive-dht.cpp"
+#include "hive-dht.h"
 
 class hivefs_fuse : public Fusepp::Fuse<hivefs_fuse>
 {
@@ -14,6 +14,7 @@ public:
   hivefs_fuse() {}
 
   ~hivefs_fuse() {}
+  static handler dht_op;
 
   //static int getattr (const char *, struct stat *, struct fuse_file_info *);
 

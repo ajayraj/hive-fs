@@ -7,7 +7,7 @@ LDFLAGS = `pkg-config fuse3 --libs` -lopendht -lgnutls
 
 $(shell mkdir -p $(OBJDIR)) 
 
-OBJS = $(OBJDIR)/hive-fs.o $(OBJDIR)/hive-fuse.o
+OBJS = $(OBJDIR)/hive-fs.o	$(OBJDIR)/hive-fuse.o $(OBJDIR)/hive-dht.o
 
 $(PROG) : $(OBJS)
 	$(CC) $(OBJS) $(LDFLAGS) -o $(PROG)
