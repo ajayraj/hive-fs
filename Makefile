@@ -1,21 +1,28 @@
-all: hive-fuse
+PROG=hive-fs
+OBJDIR=.obj
+CC=g++
 
-clean: 
-	rm -f hive-fuse
+CFLAGS = -Wall --std=c++14 `pkg-config fuse3 --cflags` -I..
+LDFLAGS = `pkg-config fuse3 --libs` -lopendht -lgnutls
 
-hive-fuse: hive-fuse.cpp
-	g++ -Wall `pkg-config fuse3 --cflags --libs` -lgnutls -lopendht -c hive-fuse.cpp 
-	gcc hive-fuse.o  -o hive-fuse `pkg-config fuse3 --cflags --libs` -lstdc++ -lopendht -lgnutls
+$(shell mkdir -p $(OBJDIR)) 
 
-start: all
-	rm -rf hive-root
-	mkdir hive-root
-	./hive-fuse -f hive-root > out.txt &
-	mount
-	tail -f out.txt &
+OBJS = $(OBJDIR)/hive-fs.o $(OBJDIR)/hive-fuse.o
 
-stop:
-	( sudo umount hive-root ; echo "")
-	( killall -q hive-fuse ; echo "")
-	mount
-	( killall -q tail ; echo "")
+$(PROG) : $(OBJS)
+	$(CC) $(OBJS) $(LDFLAGS) -o $(PROG)
+
+-include $(OBJS:.o=.d)
+
+$(OBJDIR)/%.o: %.cpp
+	$(CC) -c $(CFLAGS) $*.cpp -o $(OBJDIR)/$*.o
+	$(CC) -MM $(CFLAGS) $*.cpp > $(OBJDIR)/$*.d
+	@mv -f $(OBJDIR)/$*.d $(OBJDIR)/$*.d.tmp
+	@sed -e 's|.*:|$(OBJDIR)/$*.o:|' < $(OBJDIR)/$*.d.tmp > $(OBJDIR)/$*.d
+	@sed -e 's/.*://' -e 's/\\$$//' < $(OBJDIR)/$*.d.tmp | fmt -1 | \
+	  sed -e 's/^ *//' -e 's/$$/:/' >> $(OBJDIR)/$*.d
+	@rm -f $(OBJDIR)/$*.d.tmp
+
+clean:
+	rm -rf $(PROG) $(OBJDIR)
+
