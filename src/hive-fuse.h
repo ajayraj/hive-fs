@@ -97,6 +97,7 @@ void hivefs_dht_init_node() {
    node.run(4855, dht::crypto::generateIdentity(), true);
    node.bootstrap("localhost", "4222");
 
+  std::cout << "CONNECTS TO BOOTSTRAP " << std::endl;
 
 
    std::string n = "N";
@@ -521,7 +522,7 @@ int hivefs_dht_getattr(std::string path, struct stat& statbuf) {
         //return_vec.push_back(1);
 
         File f = File(uid, dht_get_entry_contents(uid), path);
-        statbuf.st_mode = statbuf.st_mode | S_IFREG; //(S_IRWXU | S_IRWXG | S_IRWXO);
+        statbuf.st_mode = S_IFREG | 0777; //(S_IRWXU | S_IRWXG | S_IRWXO);
         statbuf.st_nlink = 2;
         statbuf.st_size = f.size;
         statbuf.st_gid = std::stoi((f.file_orig).substr(1));
@@ -532,7 +533,7 @@ int hivefs_dht_getattr(std::string path, struct stat& statbuf) {
 
     else {
         //return_vec.push_back(0);
-        statbuf.st_mode = statbuf.st_mode | S_IFDIR; //(S_IRWXU | S_IRWXG | S_IRWXO);
+        statbuf.st_mode = S_IFDIR | 0755; //(S_IRWXU | S_IRWXG | S_IRWXO);
         statbuf.st_nlink = 1;
         //return.vec.push_back(1);
     }
