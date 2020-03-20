@@ -2,7 +2,7 @@ FROM ubuntu:rolling
 
 RUN apt update && apt upgrade -y;
 
-RUN apt install git vim lsb-release g++ pkg-config libncurses5-dev fuse3 libreadline-dev nettle-dev libgnutls28-dev libargon2-0-dev libmsgpack-dev librestbed-dev libjsoncpp-dev curl wget cython3 python3-dev python3-setuptools python-pip python3-pip meson make dh-autoreconf cmake ninja-build -y
+RUN apt install git vim lsb-release udev g++ pkg-config libncurses5-dev fuse3 libreadline-dev nettle-dev libgnutls28-dev libargon2-0-dev libmsgpack-dev librestbed-dev libjsoncpp-dev curl wget cython3 python3-dev python3-setuptools python-pip python3-pip meson make dh-autoreconf cmake ninja-build -y
 
 RUN pip install pytest
 
