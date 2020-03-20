@@ -184,6 +184,7 @@ size_t find_attr_index(const std::string& attrs, int prev_delim) {
 
 //WORKING
 int hivefs_dht_mkdir(std::string path) { //Is passed path from hive_fuse_mkdir(path)
+    std::cout << "DHT_MKDIR CALLED ON PATH: " << path << std::endl;
     if(path[path.length()-1] != '/') { return -1; }
     //std::cout << std::endl << std::endl << std::endl << "BEGINNING MKDIR FOR: " << path << std::endl;
     std::string path_kvs = dht_get_entry_contents(path);
@@ -191,7 +192,8 @@ int hivefs_dht_mkdir(std::string path) { //Is passed path from hive_fuse_mkdir(p
     sleep(1);
     std::string is_root = "0";    //Implement to activate to properly initialize root? May init root separately to avoid
 
-
+    std::cout << "PATH_KVS FOR MKDIR: " << path_kvs << std::endl;
+    
     if(path_kvs == "" || (path_kvs.substr(path_kvs.find("|") + 1) == "0")) {   //Directory has never existed, was purged from DHT, or was deleted.
         //std::cout << "PASSES IF" << std::endl;
         std::string parent_path = path;

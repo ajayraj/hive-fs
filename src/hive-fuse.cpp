@@ -129,8 +129,10 @@ int hivefs_fuse::mkdir(const char *path, mode_t mode){
    /*char fpath[]; //Set to max path size
    fpath = ; //Full path name of folder at path, will get directory name from DHT file-tag and append
    mkdir(fpath, mode);*/
+   std::string dir_path = path;
+   dir_path += "/";
 
-   if (hivefs_dht_mkdir(std::string(path)) == -1)
+   if (hivefs_dht_mkdir(std::string(dir_path)) == -1)
       return -EIO;
 
    return 0;
