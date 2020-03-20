@@ -6,7 +6,7 @@ Project: A Peer-to-Peer network implementation using Filesystem in Userspace (FU
 Environment: A Docker container running Clear Linux with FUSE packages installed.
 
 To generate Dockerimage:
-    ```bash
-    sudo docker build -t "hiveFS" .; 
+    ```
+    sudo docker build -t "hiveFS" .;
     sudo docker run -it hiveFS
     ```
