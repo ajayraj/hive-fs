@@ -95,7 +95,7 @@ std::string dht_get_entry_contents(std::string key) {
 void hivefs_dht_init_node() {
    // start node and connect to bootstrap node
    node.run(4855, dht::crypto::generateIdentity(), true);
-   node.bootstrap("localhost", "4222");
+   node.bootstrap("bootstrap.jami.net", "4222");
 
   std::cout << "CONNECTS TO BOOTSTRAP " << std::endl;
 
@@ -108,10 +108,14 @@ void hivefs_dht_init_node() {
      std::string cont = dht_get_entry_contents(name_check);
 
      node.put("/", "___d1|1");
+     std::cout << "JUST GET FROM RECENT PUT " << dht_get_entry_contents("/") << std::endl;
+     
      sleep(1);
      std::string root_val = "/";
-     root_val = root_val + "|" + "d1" + "|" + "0" + "|" + "1" + "|" + "1" + "&" + " ";
+     root_val = root_val + "|" + " " + "|" + "0" + "|" + "1" + "|" + "1" + "&" + " ";
      node.put("d1", "___" + root_val);
+
+      std::cout << "JUST GET FROM RECENT PUT " << dht_get_entry_contents("d1") << std::endl;
 
      // node name = key, value @ key indicates availability
      if (cont == "") {

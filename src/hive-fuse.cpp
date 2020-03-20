@@ -30,18 +30,20 @@ int hivefs_fuse::readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 {
    std::cout << "ENTERS READDIR " << std::endl;
    
-   if (strcmp(path, "/") != 0)
-		return -ENOENT;
+   /*if (strcmp(path, "/") != 0)
+		return -ENOENT;*/
 
 
    	filler(buf, ".", NULL, 0, FUSE_FILL_DIR_PLUS);
 	filler(buf, "..", NULL, 0, FUSE_FILL_DIR_PLUS);
 
    	std::vector<std::string> entry_list;
+      std::cout << "READING DIR " << path << std::endl;
    	entry_list = hivefs_dht_readdir(std::string(path));
+      std::cout << "ENTRY_LIST SIZE " << entry_list.size() << std::endl;
 
-   	if (entry_list.at(0) == "-1")
-      return -ENOENT;
+   	if (entry_list.size() == 0 || entry_list.at(0) == "-1")
+         return -ENOENT;
 
    	unsigned int i = 0;
    	while (i < entry_list.size()){
