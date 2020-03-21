@@ -95,7 +95,7 @@ std::string dht_get_entry_contents(std::string key) {
 void hivefs_dht_init_node() {
    // start node and connect to bootstrap node
    node.run(4855, dht::crypto::generateIdentity(), true);
-   node.bootstrap("bootstrap.jami.net", "4222");
+   node.bootstrap("localhost", "4222");
 
   std::cout << "CONNECTS TO BOOTSTRAP " << std::endl;
 
@@ -115,7 +115,7 @@ void hivefs_dht_init_node() {
      root_val = root_val + "|" + " " + "|" + "0" + "|" + "1" + "|" + "1" + "&" + " ";
      node.put("d1", "___" + root_val);
 
-      std::cout << "JUST GET FROM RECENT PUT " << dht_get_entry_contents("d1") << std::endl;
+      std::cout << "ROOT_PATH_KVS: " << dht_get_entry_contents("d1") << std::endl;
 
      // node name = key, value @ key indicates availability
      if (cont == "") {
@@ -185,15 +185,15 @@ size_t find_attr_index(const std::string& attrs, int prev_delim) {
 //WORKING
 int hivefs_dht_mkdir(std::string path) { //Is passed path from hive_fuse_mkdir(path)
     std::cout << "DHT_MKDIR CALLED ON PATH: " << path << std::endl;
-    if(path[path.length()-1] != '/') { return -1; }
+    //if(path[path.length()-1] != '/') { std::cout << "PATH LENGTH IS : " << path.length() << std::endl; return -1; }
     //std::cout << std::endl << std::endl << std::endl << "BEGINNING MKDIR FOR: " << path << std::endl;
     std::string path_kvs = dht_get_entry_contents(path);
     //std::cout << "PATH_KVS CONTENTS: " << path_kvs << std::endl;
     sleep(1);
     std::string is_root = "0";    //Implement to activate to properly initialize root? May init root separately to avoid
 
-    std::cout << "PATH_KVS FOR MKDIR: " << path_kvs << std::endl;
-    
+    //std::cout << "PATH_KVS FOR MKDIR: " << path_kvs << std::endl;
+
     if(path_kvs == "" || (path_kvs.substr(path_kvs.find("|") + 1) == "0")) {   //Directory has never existed, was purged from DHT, or was deleted.
         //std::cout << "PASSES IF" << std::endl;
         std::string parent_path = path;
@@ -209,6 +209,7 @@ int hivefs_dht_mkdir(std::string path) { //Is passed path from hive_fuse_mkdir(p
         sleep(1);
 
         if(parent_kvs == "" || parent_kvs.substr(parent_kvs.find("|") + 1) == "0") {    //If the parent of the path does not exist
+            std::cout << "PARENT CHECK IN MKDIR FAILS : " << parent_kvs.substr(parent_kvs.find("|") + 1) << std::endl;
             return -1;
         }
 
@@ -222,7 +223,7 @@ int hivefs_dht_mkdir(std::string path) { //Is passed path from hive_fuse_mkdir(p
         //std::cout << "PREPARE TO PUT: " << value << std::endl;
 
         node.put(path, "___" + value);
-        //std::cout << "GOOD PUT: " <<  dht_get_entry_contents(path) << std::endl;
+        std::cout << "MKDIR_PATH_KVS: " <<  dht_get_entry_contents(path) << std::endl;
 
         std::string name = path;
         name.pop_back();
@@ -239,24 +240,26 @@ int hivefs_dht_mkdir(std::string path) { //Is passed path from hive_fuse_mkdir(p
         //std::cout << "CREATES DIR: " << std::endl;
         node.put(duid, "___" + directory.output_string());
 
-        //std::cout << "PUTS DIR: " << directory.output_string() << std::endl;
+        //std::cout << "MKDIR_ATTRIBUTE_STRING: " << directory.output_string() << std::endl;
         sleep(1);
-        //std::cout << "CREATES PARENT DIR: " << parent_uid << std::endl;
+        //std::cout << "MKDIR_PARENT_UID: " << parent_uid << std::endl;
         Dir parent_dir = Dir(parent_uid, dht_get_entry_contents(parent_uid), parent_path);
-        //std::cout << "PARENT DIR CONSTRUCTOR VALUE PASS IN: " << dht_get_entry_contents(parent_uid) << std::endl;
+        std::cout << "PARENT_DIR_UID_KVS: " << dht_get_entry_contents(parent_uid) << std::endl;
         //std::cout << "CREATES PARENT DIR SUCCESS: " << dht_get_entry_contents(parent_uid) << std::endl;
         parent_dir.value += duid + " ";
         //std::cout << "TRIES PUT PARENT: " << parent_uid << std::endl;
         //std::cout << "PARENT PATH VALUE OUTPUT STRING: " << parent_dir.output_string() << std::endl;
         node.put(parent_uid, "___" + parent_dir.output_string());
-        //std::cout << "PARENT PUT SUCCESS: " << parent_uid << std::endl << std::endl << std::endl;
+        std::cout << "MKDIR_PARENT_ATTRIBUTE_STRING: " << parent_dir.output_string() << std::endl << std::endl << std::endl;
         std::string parent_content_check = dht_get_entry_contents(parent_uid);
-        //std::cout << "PARENT GET FROM RECENT PUT: " << parent_content_check << std::endl;
+        std::cout << "PARENT GET FROM RECENT PUT: " << parent_content_check << std::endl;
         sleep(1);
     }
 
     else{   //Directory already exists at path, fails
+        std::cout << "FINAL ELSE QUITS MKDIR : " << std::endl;
         return -1;
+
     }
 
     return 0;
@@ -322,7 +325,10 @@ int hivefs_dht_rmdir(std::string path) {
   //If path does not exist, return -1. Ensure that it is a dir and not a file
   if(path[path.length()-1] != '/') { return -1; } // return -1 if not a dir
   if(path.length() == 1) { return -1; } // return -1 if trying to rm root
-  std::string value = dht_get_entry_contents(path);
+
+  std::string value;
+  if (path.length() == 1) { value = dht_get_entry_contents(path); }
+  if (path.length() != 1)  { value = dht_get_entry_contents(path + "/"); }
   if(value == "" || value[value.length()-1] == '0') { return -1; } // if doesn't exist, return -1
 
   // change uid to does not exist
@@ -390,11 +396,11 @@ int hivefs_dht_create(std::string path) {
     std::string parent_path = path;
     parent_path = parent_path.substr(0, parent_path.find_last_of("/") + 1);   //Parses path minus name
 
-    //std::cout << "PARENT PATH: " << parent_path << std::endl;
+    std::cout << "CREATE_PARENT_PATH: " << parent_path << std::endl;
 
     //TESTED WORKING UNTIL HERE SO FAR:
     std::string parent_kvs = dht_get_entry_contents(parent_path);
-    //std::cout << "PARENT_KVS: " << parent_kvs << std::endl;
+    //std::cout << "PRE_CREATE_PARENT_KVS: " << parent_kvs << std::endl;
 
     if(parent_kvs == "" || parent_kvs.substr(parent_kvs.find("|") + 1) == "0") {    //If the parent of the path does not exist
       //std::cout << "didnt make it" << std::endl;
@@ -423,8 +429,10 @@ int hivefs_dht_create(std::string path) {
 
     node.put(fuid, "___" + f.output_string());
 
+    std::cout << "CREATE_FILE_ATTRIBUTES: " << f.output_string() << std::endl;
+
     Dir d = Dir(parent_uid, dht_get_entry_contents(parent_uid), parent_path);
-    //std::cout << "DIR CONTENT STORE VALUE: " << d.value << std::endl;
+    std::cout << "CREATE_PARENT_ATTRIBUTES: " << d.output_string() << std::endl;
 
     //PROBLEM IS HERE
     //std::cout << "VERY PROBLEMATIC VALUE SHOULD BE UID LIST: " << d.value << std::endl;
@@ -440,7 +448,7 @@ int hivefs_dht_create(std::string path) {
     node.put(parent_uid, "___" + d.output_string());
 
     std::string test_this_again = dht_get_entry_contents(parent_uid);
-    //std::cout << "OUTPUT OF PARENTUID GET AFTER NEW PUT: " << test_this_again << std::endl;
+    std::cout << "CREATE_NEW_ATTRIBUTES: " << test_this_again << std::endl;
     d = Dir(parent_uid, test_this_again, parent_path);
     //std::cout << "CONTENT AFTER PUT IN VALUE: " << d.value << std::endl;
 
@@ -494,13 +502,17 @@ std::string hivefs_dht_read(std::string path) {
     std::string value = dht_get_entry_contents(fuid);
 
     File f = File(fuid, value, path);
+    
 
     return f.value;
 }
 
 //TO FIX
 int hivefs_dht_write(std::string path, std::string data) {
+  std::cout << "ENTERED WRITE, CONTENT TO WRITE: " << data << std::endl;
+  std::cout << "PATH TO WRITE: "  << path << std::endl;
   std::string value = dht_get_entry_contents(path);
+
   if(path[path.length() - 1] == '/') { return -1; }
   if(value == "" || (value[value.length() - 1] == '0')) { return -1; } // if doesn't exist, return -1
   //If file does not already exist, return -1; hivefs_dht_create must be called instead
@@ -510,6 +522,10 @@ int hivefs_dht_write(std::string path, std::string data) {
 
   File f = File(fuid, contents, path, NODE_ID);
   f.value = data;
+  f.size = sizeof(data);
+  
+  std::cout << "DATA STORED IN CONSTRUCTED FILE: "  << f.value << std::endl;
+  std::cout << "SIZE OF CONSTRUCTED FILE: "  << f.size << std::endl;
 
   node.put(fuid, "___" + f.output_string());
 
@@ -518,7 +534,38 @@ int hivefs_dht_write(std::string path, std::string data) {
 
 //TO FIX
 int hivefs_dht_getattr(std::string path, struct stat& statbuf) {
-    std::string path_kvs = dht_get_entry_contents(path);
+    std::string path_kvs = dht_get_entry_contents(path + "/");
+
+    std::string uid = path_kvs.substr(0, path_kvs.find("|"));
+    bool is_dir;
+
+    if (path_kvs != "" &&  path_kvs.substr(path_kvs.find("|") + 1) == "1") { is_dir = true; }
+    if (path == "/" || is_dir) {
+      statbuf.st_mode = S_IFDIR | 0755;
+      statbuf.st_nlink = 2;
+      return 0;
+    }
+
+    path_kvs = dht_get_entry_contents(path);
+    bool is_file = false;
+    if (path_kvs != "" &&  path_kvs.substr(path_kvs.find("|") + 1) == "1") { is_file = true; }
+
+    if (path_kvs == "" || !is_file) {
+      return -ENOENT;
+    }
+
+    if (is_file) {
+      File f = File(uid, dht_get_entry_contents(uid), path);
+      statbuf.st_mode = S_IFREG | 0777;  //(S_IRWXU | S_IRWXG | S_IRWXO);
+      statbuf.st_nlink = 1;
+      statbuf.st_size = f.size;
+      statbuf.st_gid = std::stoi((f.file_orig).substr(1));
+      statbuf.st_uid = std::stoi((f.file_last_author).substr(1));
+	    return 0;
+    }
+
+    /*std::cout << "GETATTR PATH TO READ : "  << path << std::endl;
+    std::cout << "GETATTR PATH_KVS : "  << path_kvs << std::endl;
     if(path_kvs == "" || (path_kvs.substr(path_kvs.find("|") + 1) == "0")) { return -1; } // if doesn't exist, return -1
 
     std::string uid = path_kvs.substr(0, path_kvs.find("|"));
@@ -528,8 +575,8 @@ int hivefs_dht_getattr(std::string path, struct stat& statbuf) {
         //return_vec.push_back(1);
 
         File f = File(uid, dht_get_entry_contents(uid), path);
-        statbuf.st_mode = S_IFREG | 0777; //(S_IRWXU | S_IRWXG | S_IRWXO);
-        statbuf.st_nlink = 2;
+        statbuf.st_mode = S_IFREG | 0777;
+        statbuf.st_nlink = 1;
         statbuf.st_size = f.size;
         statbuf.st_gid = std::stoi((f.file_orig).substr(1));
         statbuf.st_uid = std::stoi((f.file_last_author).substr(1));
@@ -540,11 +587,11 @@ int hivefs_dht_getattr(std::string path, struct stat& statbuf) {
     else {
         //return_vec.push_back(0);
         statbuf.st_mode = S_IFDIR | 0755; //(S_IRWXU | S_IRWXG | S_IRWXO);
-        statbuf.st_nlink = 1;
+        statbuf.st_nlink = 2;
         //return.vec.push_back(1);
     }
 
-    return 0;
+    return 0;*/
 }
 
 //TO FIX
@@ -553,8 +600,10 @@ std::vector<std::string> hivefs_dht_readdir(std::string path) {
     //Return vector of strings of filename
     //May need to check deletions here, if not already thoroughly checked
     std::vector<std::string> uids;
-
     std::string path_kvs = dht_get_entry_contents(path);
+
+    /*if (path.length() == 1) { path_kvs = dht_get_entry_contents(path); }
+    if (path.length() != 1)  { path_kvs = dht_get_entry_contents(path + "/"); }*/
     std::string duid = path_kvs.substr(0, path_kvs.find("|"));
     if(path_kvs == "" || (path_kvs[path_kvs.length() - 1] == '0')) { uids.push_back("-1"); return uids; } // if doesn't exist, return -1
     if(duid[0] == 'f') { uids.push_back("-1"); return uids; }

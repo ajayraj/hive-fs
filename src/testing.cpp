@@ -6,7 +6,7 @@
 #include <random>
 
 
-#include "hive-dht.cpp"
+#include "hive-dht.h"
 
 void print_vec(std::vector<std::string> const &input) {
   for(int i = 0; i < input.size(); ++i) {

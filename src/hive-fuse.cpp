@@ -16,6 +16,11 @@ static const string hello_path = "/hello";*/
 
 int hivefs_fuse::getattr(const char *path, struct stat *statbuf, struct fuse_file_info *)
 {
+   std::cout << "PATH IN GETATTR: " << path << std::endl;
+   /*if (path[(unsigned) (strlen(path) - 1)] == '.') {
+      std::cout << "path = ." << std::endl;
+      return 0;
+    }*/
    std::cout << "ENTERS GETATTR " << std::endl;
    int status = hivefs_dht_getattr(std::string(path), *statbuf);
    if (status == -1)
@@ -33,14 +38,22 @@ int hivefs_fuse::readdir(const char *path, void *buf, fuse_fill_dir_t filler,
    /*if (strcmp(path, "/") != 0)
 		return -ENOENT;*/
 
+   /*if (path[(unsigned) (strlen(path) - 1)] == '.') {
+      std::cout << "path = ." << std::endl;
+      return 0;
+    }*/
+    
 
    	filler(buf, ".", NULL, 0, FUSE_FILL_DIR_PLUS);
-	filler(buf, "..", NULL, 0, FUSE_FILL_DIR_PLUS);
+	   filler(buf, "..", NULL, 0, FUSE_FILL_DIR_PLUS);
 
    	std::vector<std::string> entry_list;
       std::cout << "READING DIR " << path << std::endl;
    	entry_list = hivefs_dht_readdir(std::string(path));
       std::cout << "ENTRY_LIST SIZE " << entry_list.size() << std::endl;
+      std::cout << "ENTRY_LIST: ";
+      for(int i = 0; i < entry_list.size(); ++i) { std::cout << entry_list.at(i) << " "; }
+      std::cout << std::endl;
 
    	if (entry_list.size() == 0 || entry_list.at(0) == "-1")
          return -ENOENT;
@@ -131,21 +144,26 @@ int hivefs_fuse::mkdir(const char *path, mode_t mode){
    mkdir(fpath, mode);*/
    std::string dir_path = path;
    dir_path += "/";
+   int status = hivefs_dht_mkdir(std::string(dir_path));
 
-   if (hivefs_dht_mkdir(std::string(dir_path)) == -1)
-      return -EIO;
-
+   if ( status == -1) {return -EIO;}
+   std::cout << "FUSE_MKDIR ABOUT TO EXIT 0" << std::endl;
    return 0;
 }
 
 int hivefs_fuse::write(const char *path, const char *buf, size_t size, off_t offset, struct fuse_file_info *fi) {
    std::cout << "ENTERS WRITE " << std::endl;
-   int status = hivefs_dht_write(std::string(path), std::string(buf));
+   std::string file_contents(buf);
+   std::cout<< "CONTENTS OF FILE TO PASS TO DHT_VAL: " << file_contents << std::endl;
+   int status = hivefs_dht_write(std::string(path), file_contents);
+   
+   std::cout<< "STATUS OF HIVEFS_FUSE WRITE : " << status << std::endl;
+
 
    if (status == -1)
       return -ENOENT;
 
-   return strlen(buf); //Cast to string if necessary, or find alternate function
+   return file_contents.length(); //Cast to string if necessary, or find alternate function
    //Original call to write to memory: pwrite(fi->fh, buf, size, offset)
 }
 

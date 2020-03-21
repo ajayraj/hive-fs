@@ -99,14 +99,17 @@ struct File : Entry {
 
     File(std::string uid, std::string value, std::string path)
     : Entry(uid, value, path) { //Code called most likely for read only
-
+        std::cout << "VALUE PASSED TO POPULATE FILE CONSTRUCTOR: " << value << std::endl;
         //Get all these values below from the value string
         file_orig = entry_data.at(4); //Can store original node
         file_last_author = entry_data.at(5); //Stores node of last author
         time_orig = entry_data.at(6); //Time created
         time_last_write = entry_data.at(7); //Stores time written to
+        std::cout << "SIZE STORED IN FILE DURING CONSTRUCTOR FROM ENTRY_DATA: " << entry_data.at(8) << std::endl;
         std::istringstream iss(entry_data.at(8));
         iss >> size;
+
+        std::cout << "SIZE : " << size << std::endl;
 
         final_string = name + "|" + parent_uid + "|" + std::to_string(is_file ? 1 : 0) + "|" + entry_data.at(3) + "|" + file_orig + "|" + file_last_author + "|" + time_orig + "|" + time_last_write + "|" + std::to_string(size) + "&" + this->value;
     }
@@ -139,9 +142,11 @@ struct File : Entry {
             file_last_author = node_id;
             time_last_write = curr_time;
         }
-
+        std::cout << "SIZE STORED IN FILE DURING CONSTRUCTOR FROM ENTRY_DATA: " << entry_data.at(8) << std::endl;
         std::istringstream iss(entry_data.at(8));
         iss >> size;
+        //size = std::to_string(entry_data.at(8));
+        std::cout << "SIZE : " << size << std::endl;
 
         final_string = name + "|" + parent_uid + "|" + std::to_string(is_file ? 1 : 0) + "|" + entry_data.at(3) + "|" + file_orig + "|" + file_last_author + "|" + time_orig + "|" + time_last_write + "|" + std::to_string(size) + "&" + this->value;
     }
