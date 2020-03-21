@@ -1,5 +1,5 @@
-# 179F_proj
-## Operating Systems Senior Design Project
+# hive-fs
+## Distributed Peer-to-Peer Filesystem using OpenDHT and LibFUSE
 - Making something cool for an expensive piece of paper
 
 Project: A Peer-to-Peer network implementation using Filesystem in Userspace (FUSE).
