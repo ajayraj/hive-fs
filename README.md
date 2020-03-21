@@ -1,15 +1,16 @@
 # hive-fs
 ## Distributed Peer-to-Peer Filesystem using OpenDHT and LibFUSE
-- Making something cool for an expensive piece of paper
 
 Project: A Peer-to-Peer network implementation using Filesystem in Userspace (FUSE).
 Environment: A Docker container running Clear Linux with FUSE packages installed.
 
 To run code: 
 - Build OpenDHT and install fuse3 on your system
-- Go into the src folder
-- Run make to build HiveFS
-- Create a directory to be mounted, followed by the command `fusermount -u [directory_name]`
+- cd into the src folder
+- make to build HiveFS
+- Create a directory to be mounted
+- Force FUSE unmount: `fusermount -u [directory_name]`
+- Add group fuse if not already existing
 - Grant yourself permissions using the command `sudo usermod -aG fuse [username]`
 - Start a bootstrap node in a separate terminal using `dhtnode -b localhost -p 4222`
 - Then run `./hive-fuse -f [directory_name]` to mount your filesystem and connect to OpenDHT
